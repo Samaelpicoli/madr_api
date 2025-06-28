@@ -1,9 +1,10 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, registry
 
 from madr.settings.settings import Settings
 
 engine = create_engine(Settings().DATABASE_URL)
+table_registry = registry()
 
 
 def get_session():  # pragma: no cover

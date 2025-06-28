@@ -1,12 +1,12 @@
 from dataclasses import asdict
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from madr.models.account import Account
 
 
-def test_create_account(session: AsyncSession, mock_db_time):
+def test_create_account(session: Session, mock_db_time):
     """
     Testa a criação de uma conta de usuário no banco de dados.
     Verifica se o usuário é criado corretamente com os dados fornecidos
