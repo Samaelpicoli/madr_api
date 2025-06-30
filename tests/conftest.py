@@ -15,6 +15,43 @@ from madr.security.password_check import get_password_hash
 from madr.settings.settings import Settings
 
 
+class AccountFactory(factory.Factory):
+    """
+    Fábrica para criar instâncias de Accounts para testes.
+    Esta fábrica utiliza a biblioteca `factory_boy` para gerar
+    instâncias de Account com dados aleatórios. Os campos
+    'username', 'email' e 'password' são preenchidos com valores
+    gerados aleatoriamente.
+
+    Attributes:
+        username (factory.Sequence): Gera um nome de usuário único, o sequence,
+        é incrementado a cada chamada, garantindo que cada usuário tenha
+        um nome de usuário exclusivo.
+
+        email (factory.LazyAttribute): Gera um email baseado no nome de
+        usuáro, o lazy significa que o email é gerado após atributos que
+        não são fixos serem definidos, garantindo que o email
+        seja sempre único e relacionado ao nome de usuário.
+
+        password (factory.LazyAttribute): Gera uma senha baseada no nome
+        de usuário, garantindo que a senha seja sempre única e relacionada
+        ao nome de usuário. A senha é gerada após os atributos que não são
+        fixos serem definidos, garantindo que a senha seja sempre
+        consistente com o nome de usuário.
+    """
+
+    class Meta:
+        """
+        Meta class para definir o modelo associado à fábrica.
+        """
+
+        model = Account
+
+    username = factory.Sequence(lambda n: f'test{n}')
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
+    password = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')
+
+
 @pytest.fixture
 def client(session):
     """
@@ -216,40 +253,3 @@ def token(client, account):
 @pytest.fixture
 def settings():
     return Settings()
-
-
-class AccountFactory(factory.Factory):
-    """
-    Fábrica para criar instâncias de Accounts para testes.
-    Esta fábrica utiliza a biblioteca `factory_boy` para gerar
-    instâncias de Account com dados aleatórios. Os campos
-    'username', 'email' e 'password' são preenchidos com valores
-    gerados aleatoriamente.
-
-    Attributes:
-        username (factory.Sequence): Gera um nome de usuário único, o sequence,
-        é incrementado a cada chamada, garantindo que cada usuário tenha
-        um nome de usuário exclusivo.
-
-        email (factory.LazyAttribute): Gera um email baseado no nome de
-        usuáro, o lazy significa que o email é gerado após atributos que
-        não são fixos serem definidos, garantindo que o email
-        seja sempre único e relacionado ao nome de usuário.
-
-        password (factory.LazyAttribute): Gera uma senha baseada no nome
-        de usuário, garantindo que a senha seja sempre única e relacionada
-        ao nome de usuário. A senha é gerada após os atributos que não são
-        fixos serem definidos, garantindo que a senha seja sempre
-        consistente com o nome de usuário.
-    """
-
-    class Meta:
-        """
-        Meta class para definir o modelo associado à fábrica.
-        """
-
-        model = Account
-
-    username = factory.Sequence(lambda n: f'test{n}')
-    email = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
-    password = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')

@@ -1,7 +1,8 @@
 from typing import List
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from madr.schemas.page_schema import FilterPage
 from madr.utils.sanitize_data import sanitize_text_in, sanitize_text_out
 
 
@@ -74,12 +75,12 @@ class AuthorUpdate(BaseModel):
     Modelo para representar a atualização de um autor.
 
     Attributes:
-        nome (str | None): O nome do autor a ser atualizado.
+        name (str | None): O nome do autor a ser atualizado.
     """
 
-    nome: str | None = None
+    name: str | None = None
 
-    @field_validator('nome')
+    @field_validator('name')
     def sanitize_username(cls, text: str):
         """
         Sanitiza o nome do autor para exibição pública.
@@ -91,3 +92,8 @@ class AuthorUpdate(BaseModel):
             str: O nome sanitizado para exibição pública.
         """
         return sanitize_text_out(text)
+
+
+class FilterAuthor(FilterPage):
+    name: str | None = Field(default=None, min_length=1)
+    limit: int = Field(ge=1, default=20)
