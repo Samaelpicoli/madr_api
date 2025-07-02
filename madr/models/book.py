@@ -20,7 +20,9 @@ class Book:
     title: Mapped[str] = mapped_column(unique=True)
     year: Mapped[int]
     author_id: Mapped[int] = mapped_column(ForeignKey('authors.id'))
-    author: Mapped['Author'] = relationship(init=False, back_populates='books')
+    author: Mapped['Author'] = relationship(
+        init=False, back_populates='books', lazy='selectin'
+    )
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )

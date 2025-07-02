@@ -19,7 +19,10 @@ class Author:
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
     name: Mapped[str] = mapped_column(unique=True)
     books: Mapped[List['Book']] = relationship(
-        init=False, back_populates='author', cascade='all, delete-orphan'
+        init=False,
+        back_populates='author',
+        cascade='all, delete-orphan',
+        lazy='selectin',
     )
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()

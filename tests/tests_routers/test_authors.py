@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import factory
 import factory.fuzzy
+import pytest
 
 from madr.models.author import Author
 
@@ -86,7 +87,10 @@ def test_delete_author_should_return_404_error_when_author_does_not_exists(
     assert response.json() == {'detail': 'Author not found'}
 
 
-def test_delete_author_should_return_deleted_author(client, token, session):
+@pytest.mark.asyncio
+async def test_delete_author_should_return_deleted_author(
+    client, token, session
+):
     """
     Testa se o endpoint /authors/{author_id} deleta um autor existente.
 
@@ -96,7 +100,7 @@ def test_delete_author_should_return_deleted_author(client, token, session):
     """
     author = AuthorFactory(name='Teste')
     session.add(author)
-    session.commit()
+    await session.commit()
     response = client.delete(
         f'/authors/{author.id}',
         headers={'Authorization': f'Bearer {token}'},
@@ -125,7 +129,10 @@ def test_patch_author_should_return_404_error_when_author_does_not_exists(
     assert response.json() == {'detail': 'Author not found'}
 
 
-def test_patch_author_should_return_updated_author(client, token, session):
+@pytest.mark.asyncio
+async def test_patch_author_should_return_updated_author(
+    client, token, session
+):
     """
     Testa se o endpoint /authors/{author_id} atualiza um autor existente.
 
@@ -134,8 +141,8 @@ def test_patch_author_should_return_updated_author(client, token, session):
     """
     author = AuthorFactory(name='Machado d asis')
     session.add(author)
-    session.commit()
-    session.refresh(author)
+    await session.commit()
+    await session.refresh(author)
     response = client.patch(
         f'/authors/{author.id}',
         headers={'Authorization': f'Bearer {token}'},
@@ -148,7 +155,8 @@ def test_patch_author_should_return_updated_author(client, token, session):
     }
 
 
-def test_patch_author_should_return_400_error_when_author_already_exists(
+@pytest.mark.asyncio
+async def test_patch_author_should_return_400_error_when_author_already_exists(
     client, token, session
 ):
     """
@@ -163,7 +171,7 @@ def test_patch_author_should_return_400_error_when_author_already_exists(
     author2 = AuthorFactory(name='Manuel Bandeira')
     session.add(author1)
     session.add(author2)
-    session.commit()
+    await session.commit()
 
     response = client.patch(
         f'/authors/{author2.id}',
@@ -193,7 +201,8 @@ def test_get_author_should_return_404_error_when_author_does_not_exists(
     assert response.json() == {'detail': 'Author not found'}
 
 
-def test_get_author_should_return_author(client, token, session):
+@pytest.mark.asyncio
+async def test_get_author_should_return_author(client, token, session):
     """
     Testa se o endpoint /authors/{author_id} retorna os dados de um autor.
 
@@ -202,7 +211,7 @@ def test_get_author_should_return_author(client, token, session):
     """
     author = AuthorFactory(name='Machado De Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     session.refresh(author)
     response = client.get(
         f'/authors/{author.id}',
@@ -233,7 +242,10 @@ def test_get_authors_should_return_empty_list_when_no_authors_exist(
     assert response.json() == {'authors': []}
 
 
-def test_get_authors_should_return_list_of_authors(client, token, session):
+@pytest.mark.asyncio
+async def test_get_authors_should_return_list_of_authors(
+    client, token, session
+):
     """
     Testa se o endpoint /authors/ retorna uma lista de autores.
 
@@ -244,7 +256,7 @@ def test_get_authors_should_return_list_of_authors(client, token, session):
     author2 = AuthorFactory(name='Manuel Bandeira')
     session.add(author1)
     session.add(author2)
-    session.commit()
+    await session.commit()
 
     response = client.get(
         '/authors/',
@@ -259,7 +271,8 @@ def test_get_authors_should_return_list_of_authors(client, token, session):
     }
 
 
-def test_get_authors_should_return_list_of_authors_with_name_filter(
+@pytest.mark.asyncio
+async def test_get_authors_should_return_list_of_authors_with_name_filter(
     client, token, session
 ):
     """
@@ -281,7 +294,7 @@ def test_get_authors_should_return_list_of_authors_with_name_filter(
     session.add(author4)
     session.add(author5)
     session.add(author6)
-    session.commit()
+    await session.commit()
 
     response = client.get(
         '/authors/',

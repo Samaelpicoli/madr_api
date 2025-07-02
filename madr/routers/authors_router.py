@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.database.get_session import get_session
 from madr.models.account import Account
@@ -20,12 +20,12 @@ from madr.security.account_check import get_current_account
 
 router = APIRouter(prefix='/authors', tags=['authors'])
 
-T_Session = Annotated[Session, Depends(get_session)]
+T_Session = Annotated[AsyncSession, Depends(get_session)]
 CurrentAccount = Annotated[Account, Depends(get_current_account)]
 
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=AuthorPublic)
-def create_author(
+async def create_author(
     author: AuthorSchema, session: T_Session, account: CurrentAccount
 ):
     """
@@ -43,7 +43,7 @@ def create_author(
     Raises:
         HTTPException: Se o nome do autor já existir no banco de dados.
     """
-    author_db = session.scalar(
+    author_db = await session.scalar(
         select(Author).where(Author.name == author.name)
     )
     if author_db:
@@ -53,15 +53,17 @@ def create_author(
         )
     new_author = Author(name=author.name)
     session.add(new_author)
-    session.commit()
-    session.refresh(new_author)
+    await session.commit()
+    await session.refresh(new_author)
     return new_author
 
 
 @router.delete(
     '/{author_id}', status_code=HTTPStatus.OK, response_model=Message
 )
-def delete_author(author_id: int, session: T_Session, account: CurrentAccount):
+async def delete_author(
+    author_id: int, session: T_Session, account: CurrentAccount
+):
     """
     Esta função manipula requisições DELETE para a rota '/authors/{author_id}'.
     Deleta o autor com o ID fornecido.
@@ -77,19 +79,19 @@ def delete_author(author_id: int, session: T_Session, account: CurrentAccount):
     Raises:
         HTTPException: Se o autor não for encontrado.
     """
-    author = session.scalar(select(Author).where(Author.id == author_id))
+    author = await session.scalar(select(Author).where(Author.id == author_id))
     if not author:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Author not found',
         )
-    session.delete(author)
-    session.commit()
+    await session.delete(author)
+    await session.commit()
     return {'message': 'Author deleted successfully'}
 
 
 @router.patch('/{author_id}', response_model=AuthorPublic)
-def update_author(
+async def update_author(
     author_id: int,
     author_data: AuthorUpdate,
     session: T_Session,
@@ -113,14 +115,14 @@ def update_author(
         HTTPException: Se o autor não for encontrado ou se o nome do
         autor já existir.
     """
-    author = session.scalar(select(Author).where(Author.id == author_id))
+    author = await session.scalar(select(Author).where(Author.id == author_id))
     if not author:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail='Author not found',
         )
     if author_data.name:
-        existing_author = session.scalar(
+        existing_author = await session.scalar(
             select(Author).where(Author.name == author_data.name)
         )
         if existing_author and existing_author.id != author_id:
@@ -131,8 +133,8 @@ def update_author(
         author.name = author_data.name
 
     session.add(author)
-    session.commit()
-    session.refresh(author)
+    await session.commit()
+    await session.refresh(author)
 
     return author
 
@@ -140,7 +142,9 @@ def update_author(
 @router.get(
     '/{author_id}', response_model=AuthorPublic, status_code=HTTPStatus.OK
 )
-def get_author(author_id: int, session: T_Session, account: CurrentAccount):
+async def get_author(
+    author_id: int, session: T_Session, account: CurrentAccount
+):
     """
     Esta função manipula requisições GET para a rota '/authors/{author_id}'.
     Retorna os dados do autor correspondente ao ID fornecido.
@@ -156,7 +160,7 @@ def get_author(author_id: int, session: T_Session, account: CurrentAccount):
     Raises:
         HTTPException: Se o autor não for encontrado.
     """
-    author = session.scalar(select(Author).where(Author.id == author_id))
+    author = await session.scalar(select(Author).where(Author.id == author_id))
     if not author:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Author not found'
@@ -165,7 +169,7 @@ def get_author(author_id: int, session: T_Session, account: CurrentAccount):
 
 
 @router.get('/', response_model=AuthorList, status_code=HTTPStatus.OK)
-def get_authors(
+async def get_authors(
     session: T_Session,
     account: CurrentAccount,
     author_filter: Annotated[FilterAuthor, Query()],
@@ -191,5 +195,6 @@ def get_authors(
 
     query = query.offset(author_filter.offset).limit(author_filter.limit)
 
-    authors = session.scalars(query).all()
+    authors = await session.scalars(query)
+    authors = authors.all()
     return AuthorList(authors=authors)

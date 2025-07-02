@@ -3,9 +3,10 @@ from datetime import datetime
 
 import factory
 import pytest
+import pytest_asyncio
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from madr.app import app
@@ -53,7 +54,7 @@ class AccountFactory(factory.Factory):
 
 
 @pytest.fixture
-def client(session):
+def client(session: AsyncSession):
     """
     Cria um cliente de teste para a aplicação FastAPI.
     Esta função cria um cliente de teste que pode ser usado para
@@ -89,8 +90,8 @@ def client(session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def session():
+@pytest_asyncio.fixture
+async def session():
     """
     Cria uma sessão de banco de dados em memória para testes.
 
@@ -102,22 +103,27 @@ def session():
     Yields:
         Session: Uma sessão de banco de dados configurada para os testes.
     """
-    engine = create_engine(
-        'sqlite:///:memory:',
+    engine = create_async_engine(
+        'sqlite+aiosqlite:///:memory:',
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    table_registry.metadata.create_all(engine)
 
-    with Session(engine) as session:
+    async with engine.begin() as conn:
+        # Cria todas as tabelas definidas no modelo
+        await conn.run_sync(table_registry.metadata.create_all)
+
+    async with AsyncSession(engine, expire_on_commit=False) as session:
+        # Limpa o banco de dados antes de cada teste
         yield session
 
-    table_registry.metadata.drop_all(engine)
-    engine.dispose()
+    async with engine.begin() as conn:
+        # Destrói todas as tabelas após os testes
+        await conn.run_sync(table_registry.metadata.drop_all)
 
 
-@pytest.fixture
-def account(session: Session):
+@pytest_asyncio.fixture
+async def account(session: AsyncSession):
     """
     Cria um usuário de teste no banco de dados.
     Esta função cria um usuário com nome de usuário, email e senha
@@ -138,16 +144,16 @@ def account(session: Session):
         password=get_password_hash(password),
     )
     session.add(account)
-    session.commit()
-    session.refresh(account)
+    await session.commit()
+    await session.refresh(account)
 
     account.clean_password = password
 
     return account
 
 
-@pytest.fixture
-def other_account(session):
+@pytest_asyncio.fixture
+async def other_account(session: AsyncSession):
     """
     Cria uma nova conta de usuário de teste no banco de dados.
     Esta função utiliza o AccountFactory, para facilitar a criação dos dados.
@@ -164,8 +170,8 @@ def other_account(session):
     password = 'testpassword'
     account = AccountFactory(password=get_password_hash(password))
     session.add(account)
-    session.commit()
-    session.refresh(account)
+    await session.commit()
+    await session.refresh(account)
 
     account.clean_password = password
 

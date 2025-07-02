@@ -1,19 +1,21 @@
 from dataclasses import asdict
 
+import pytest
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.models.author import Author
 
 
-def test_create_author(session: Session, mock_db_time):
+@pytest.mark.asyncio
+async def test_create_author(session: AsyncSession, mock_db_time):
     with mock_db_time(model=Author) as time:
         new_account = Author(
             name='Machado de Assis',
         )
         session.add(new_account)
-        session.commit()
-        account = session.scalar(
+        await session.commit()
+        account = await session.scalar(
             select(Author).where(Author.name == 'Machado de Assis')
         )
     assert asdict(account) == {

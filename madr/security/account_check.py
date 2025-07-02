@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jwt import DecodeError, ExpiredSignatureError, decode
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.database.get_session import get_session
 from madr.models.account import Account
@@ -14,8 +14,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
 settings = Settings()
 
 
-def get_current_account(
-    session: Session = Depends(get_session),
+async def get_current_account(
+    session: AsyncSession = Depends(get_session),
     token: str = Depends(oauth2_scheme),
 ) -> Account:
     """
@@ -53,7 +53,7 @@ def get_current_account(
     except ExpiredSignatureError:
         raise credentials_exception
 
-    account = session.scalar(
+    account = await session.scalar(
         select(Account).where(Account.email == subject_email)
     )
 

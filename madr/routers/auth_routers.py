@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.database.get_session import get_session
 from madr.models.account import Account
@@ -15,13 +15,13 @@ from madr.security.password_check import verify_password
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
-T_Session = Annotated[Session, Depends(get_session)]
+T_Session = Annotated[AsyncSession, Depends(get_session)]
 OAuth2Form = Annotated[OAuth2PasswordRequestForm, Depends()]
 CurrentAccount = Annotated[Account, Depends(get_current_account)]
 
 
 @router.post('/token', response_model=Token)
-def login_for_access_token(
+async def login_for_access_token(
     form_data: OAuth2Form,
     session: T_Session,
 ):
@@ -41,7 +41,7 @@ def login_for_access_token(
     Raises:
         HTTPException: Se as credenciais forem inválidas.
     """
-    account = session.scalar(
+    account = await session.scalar(
         select(Account).where(Account.email == form_data.username)
     )
 
@@ -63,7 +63,7 @@ def login_for_access_token(
 
 
 @router.post('/refresh/token', response_model=Token)
-def refresh_access_token(account: CurrentAccount):
+async def refresh_access_token(account: CurrentAccount):
     """
     Atualiza o token de acesso do usuário autenticado.
     Esta função manipula requisições POST para a rota '/refresh/token'.

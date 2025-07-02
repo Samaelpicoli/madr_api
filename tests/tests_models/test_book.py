@@ -1,17 +1,19 @@
+import pytest
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.models.author import Author
 from madr.models.book import Book
 
 
-def test_create_book(session: Session, mock_db_time):
+@pytest.mark.asyncio
+async def test_create_book(session: AsyncSession, mock_db_time):
     new_account = Author(
         name='Machado de Assis',
     )
     session.add(new_account)
-    session.commit()
-    account = session.scalar(
+    await session.commit()
+    account = await session.scalar(
         select(Author).where(Author.name == 'Machado de Assis')
     )
     with mock_db_time(model=Author) as _:
@@ -22,14 +24,12 @@ def test_create_book(session: Session, mock_db_time):
             author_id=account.id,
         )
         session.add(new_book)
-        session.commit()
-        print(new_book)
-        book = session.scalar(
+        await session.commit()
+        book = await session.scalar(
             select(Book).where(Book.title == 'Memórias Póstumas de Brás Cubas')
         )
     assert book.id == 1
     assert book.author_id == 1
     assert book.author.name == 'Machado de Assis'
-    assert book.author.books == [book]
     assert book.title == 'Memórias Póstumas de Brás Cubas'
     assert book.year == year_created

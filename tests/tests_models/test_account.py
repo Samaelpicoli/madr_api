@@ -1,12 +1,14 @@
 from dataclasses import asdict
 
+import pytest
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.models.account import Account
 
 
-def test_create_account(session: Session, mock_db_time):
+@pytest.mark.asyncio
+async def test_create_account(session: AsyncSession, mock_db_time):
     """
     Testa a criação de uma conta de usuário no banco de dados.
     Verifica se o usuário é criado corretamente com os dados fornecidos
@@ -19,9 +21,9 @@ def test_create_account(session: Session, mock_db_time):
             password='testpassword',
         )
         session.add(new_account)
-        session.commit()
+        await session.commit()
 
-        account = session.scalar(
+        account = await session.scalar(
             select(Account).where(Account.username == 'testuser')
         )
 

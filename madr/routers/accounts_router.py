@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from madr.database.get_session import get_session
 from madr.models.account import Account
@@ -20,12 +20,12 @@ from madr.security.password_check import get_password_hash
 
 router = APIRouter(prefix='/accounts', tags=['accounts'])
 
-T_Session = Annotated[Session, Depends(get_session)]
+T_Session = Annotated[AsyncSession, Depends(get_session)]
 CurrentAccount = Annotated[Account, Depends(get_current_account)]
 
 
 @router.get('/', status_code=HTTPStatus.OK, response_model=AccountList)
-def read_accounts(
+async def read_accounts(
     session: T_Session,
     current_account: CurrentAccount,
     filter_accounts: Annotated[FilterPage, Query()],
@@ -46,16 +46,17 @@ def read_accounts(
     Returns:
         AccountList: Uma lista de contas com nome e email.
     """
-    accounts = session.scalars(
+    accounts = await session.scalars(
         select(Account)
         .offset(filter_accounts.offset)
         .limit(filter_accounts.limit)
-    ).all()
+    )
+    accounts = accounts.all()
     return {'accounts': accounts}
 
 
 @router.post('/', status_code=HTTPStatus.CREATED, response_model=AccountPublic)
-def create_account(account: AccountSchema, session: T_Session):
+async def create_account(account: AccountSchema, session: T_Session):
     """
     Cria uma nova conta de usuário.
     Esta função manipula requisições POST para a rota '/accounts/'.
@@ -71,7 +72,7 @@ def create_account(account: AccountSchema, session: T_Session):
     Raises:
         HTTPException: Se o nome de usuário ou e-mail já existirem.
     """
-    db_account = session.scalar(
+    db_account = await session.scalar(
         select(Account).where(
             (Account.username == account.username)
             | (Account.email == account.email)
@@ -96,8 +97,8 @@ def create_account(account: AccountSchema, session: T_Session):
         email=account.email,
     )
     session.add(db_account)
-    session.commit()
-    session.refresh(db_account)
+    await session.commit()
+    await session.refresh(db_account)
 
     return db_account
 
@@ -105,7 +106,7 @@ def create_account(account: AccountSchema, session: T_Session):
 @router.put(
     '/{account_id}', status_code=HTTPStatus.OK, response_model=AccountPublic
 )
-def update_account(
+async def update_account(
     account_id: int,
     account: AccountSchema,
     session: T_Session,
@@ -142,8 +143,8 @@ def update_account(
         current_account.password = get_password_hash(account.password)
 
         session.add(current_account)
-        session.commit()
-        session.refresh(current_account)
+        await session.commit()
+        await session.refresh(current_account)
 
         return current_account
 
@@ -157,7 +158,7 @@ def update_account(
 @router.delete(
     '/{account_id}', status_code=HTTPStatus.OK, response_model=Message
 )
-def delete_account(
+async def delete_account(
     account_id: int,
     session: T_Session,
     current_account: CurrentAccount,
@@ -185,14 +186,14 @@ def delete_account(
             detail='Not enough permissions',
         )
 
-    session.delete(current_account)
-    session.commit()
+    await session.delete(current_account)
+    await session.commit()
 
     return {'message': 'Account deleted successfully'}
 
 
 @router.get('/{account_id}', response_model=AccountPublic)
-def get_account(account_id: int, session: T_Session):
+async def get_account(account_id: int, session: T_Session):
     """
     Retorna os dados de uma conta de usuário específico.
     Esta função manipula requisições GET para a rota '/accounts/{account_id}'.
@@ -205,7 +206,7 @@ def get_account(account_id: int, session: T_Session):
     Returns:
         AccountPublic: Os dados da conta do usuário.
     """
-    account_db = session.scalar(
+    account_db = await session.scalar(
         select(Account).where(Account.id == account_id)
     )
     if not account_db:

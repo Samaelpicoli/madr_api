@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import factory
 import factory.fuzzy
+import pytest
 
 from madr.models.author import Author
 from madr.models.book import Book
@@ -43,7 +44,8 @@ def test_create_book_withou_author(client, token):
     assert response.json() == {'detail': 'Author not found'}
 
 
-def test_create_book_should_return_created_book(client, token, session):
+@pytest.mark.asyncio
+async def test_create_book_should_return_created_book(client, token, session):
     """
     Testa se o endpoint /books/ cria um livro e retorna os
     dados do livro criado.
@@ -54,7 +56,7 @@ def test_create_book_should_return_created_book(client, token, session):
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book_data = {
         'title': 'Dom Casmurro',
         'year': 1899,
@@ -74,7 +76,8 @@ def test_create_book_should_return_created_book(client, token, session):
     }
 
 
-def test_create_book_should_return_400_error_when_book_already_exists(
+@pytest.mark.asyncio
+async def test_create_book_should_return_400_error_when_book_already_exists(
     client, token, session
 ):
     """
@@ -87,7 +90,7 @@ def test_create_book_should_return_400_error_when_book_already_exists(
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book_data = {
         'title': 'Dom Casmurro',
         'year': 1899,
@@ -126,7 +129,8 @@ def test_delete_book_should_return_404_error_when_book_does_not_exists(
     assert response.json() == {'detail': 'Book not found'}
 
 
-def test_delete_book_should_return_deleted_book(client, token, session):
+@pytest.mark.asyncio
+async def test_delete_book_should_return_deleted_book(client, token, session):
     """
     Testa se o endpoint /books/{book_id} deleta um livro e retorna
     uma mensagem de sucesso.
@@ -137,10 +141,10 @@ def test_delete_book_should_return_deleted_book(client, token, session):
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
     session.add(book)
-    session.commit()
+    await session.commit()
 
     response = client.delete(
         f'/books/{book.id}',
@@ -170,7 +174,8 @@ def test_patch_book_should_return_404_error_when_book_does_not_exists(
     assert response.json() == {'detail': 'Book not found'}
 
 
-def test_patch_book_should_return_updated_book(client, token, session):
+@pytest.mark.asyncio
+async def test_patch_book_should_return_updated_book(client, token, session):
     """
     Testa se o endpoint /books/{book_id} atualiza um livro e retorna
     os dados do livro atualizado.
@@ -180,10 +185,10 @@ def test_patch_book_should_return_updated_book(client, token, session):
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
     session.add(book)
-    session.commit()
+    await session.commit()
 
     response = client.patch(
         f'/books/{book.id}',
@@ -199,7 +204,8 @@ def test_patch_book_should_return_updated_book(client, token, session):
     }
 
 
-def test_patch_book_with_year_altered_should_return_updated_book(
+@pytest.mark.asyncio
+async def test_patch_book_with_year_altered_should_return_updated_book(
     client, token, session
 ):
     """
@@ -212,10 +218,10 @@ def test_patch_book_with_year_altered_should_return_updated_book(
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
     session.add(book)
-    session.commit()
+    await session.commit()
     response = client.patch(
         f'/books/{book.id}',
         headers={'Authorization': f'Bearer {token}'},
@@ -230,7 +236,8 @@ def test_patch_book_with_year_altered_should_return_updated_book(
     }
 
 
-def test_patch_book_should_return_400_error_when_title_already_exists(
+@pytest.mark.asyncio
+async def test_patch_book_should_return_400_error_when_title_already_exists(
     client, token, session
 ):
     """
@@ -243,17 +250,15 @@ def test_patch_book_should_return_400_error_when_title_already_exists(
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book1 = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
     session.add(book1)
-    session.commit()
+    await session.commit()
     book2 = BookFactory(
-        title='Memórias Póstumas de Brás Cubas',
-        year=1881,
-        author_id=author.id
+        title='Memórias Póstumas de Brás Cubas', year=1881, author_id=author.id
     )
     session.add(book2)
-    session.commit()
+    await session.commit()
     response = client.patch(
         '/books/2',
         headers={'Authorization': f'Bearer {token}'},
@@ -282,7 +287,8 @@ def test_get_book_should_return_404_error_when_book_does_not_exists(
     assert response.json() == {'detail': 'Book not found'}
 
 
-def test_get_book_should_return_book(client, token, session):
+@pytest.mark.asyncio
+async def test_get_book_should_return_book(client, token, session):
     """
     Testa se o endpoint /books/{book_id} retorna os dados do livro
     quando o livro existe.
@@ -292,10 +298,10 @@ def test_get_book_should_return_book(client, token, session):
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
     session.add(book)
-    session.commit()
+    await session.commit()
 
     response = client.get(
         f'/books/{book.id}',
@@ -310,7 +316,8 @@ def test_get_book_should_return_book(client, token, session):
     }
 
 
-def test_get_books_should_return_books(client, token, session):
+@pytest.mark.asyncio
+async def test_get_books_should_return_books(client, token, session):
     """
     Testa se o endpoint /books/ retorna uma lista de livros.
 
@@ -319,14 +326,14 @@ def test_get_books_should_return_books(client, token, session):
     """
     author = AuthorFactory(name='Machado de Assis')
     session.add(author)
-    session.commit()
+    await session.commit()
     book1 = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
     book2 = BookFactory(
         title='Memórias Póstumas de Brás Cubas', year=1881, author_id=author.id
     )
     session.add(book1)
     session.add(book2)
-    session.commit()
+    await session.commit()
     expected_books = 2
     response = client.get(
         '/books/',
@@ -341,7 +348,7 @@ def test_get_books_should_return_books(client, token, session):
                 'title': 'memórias póstumas de brás cubas',
                 'year': 1881,
                 'author_id': 1,
-                'id': 2
-            }
+                'id': 2,
+            },
         ]
     }
