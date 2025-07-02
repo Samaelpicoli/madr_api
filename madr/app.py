@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from madr.routers import accounts_router as account
 from madr.routers import auth_routers as auth
 from madr.routers import authors_router as authors
+from madr.routers import books_router as books
 from madr.schemas.message_schema import Message
 
 app = FastAPI(title='MADR - Meu Acervo Digital de Romances')
@@ -13,6 +14,7 @@ app = FastAPI(title='MADR - Meu Acervo Digital de Romances')
 app.include_router(account.router)
 app.include_router(auth.router)
 app.include_router(authors.router)
+app.include_router(books.router)
 
 
 @app.get('/', status_code=HTTPStatus.OK, response_model=Message)

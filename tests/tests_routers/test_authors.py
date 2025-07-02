@@ -86,9 +86,7 @@ def test_delete_author_should_return_404_error_when_author_does_not_exists(
     assert response.json() == {'detail': 'Author not found'}
 
 
-def test_delete_author_should_return_deleted_author(
-    client, token, session
-):
+def test_delete_author_should_return_deleted_author(client, token, session):
     """
     Testa se o endpoint /authors/{author_id} deleta um autor existente.
 
@@ -127,9 +125,7 @@ def test_patch_author_should_return_404_error_when_author_does_not_exists(
     assert response.json() == {'detail': 'Author not found'}
 
 
-def test_patch_author_should_return_updated_author(
-    client, token, session
-):
+def test_patch_author_should_return_updated_author(client, token, session):
     """
     Testa se o endpoint /authors/{author_id} atualiza um autor existente.
 

@@ -95,5 +95,15 @@ class AuthorUpdate(BaseModel):
 
 
 class FilterAuthor(FilterPage):
+    """
+    Modelo para filtrar autores com base em critérios específicos.
+    Este modelo é utilizado para validar os dados de
+    entrada ao filtrar autores.
+
+    Attributes:
+        name (str | None): O nome do autor (opcional).
+        limit (int): O número máximo de autores a serem retornados.
+    """
+
     name: str | None = Field(default=None, min_length=1)
     limit: int = Field(ge=1, default=20)

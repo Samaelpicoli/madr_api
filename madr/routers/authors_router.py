@@ -29,13 +29,13 @@ def create_author(
     author: AuthorSchema, session: T_Session, account: CurrentAccount
 ):
     """
-    Cria um novo autor.
     Esta função manipula requisições POST para a rota '/authors/'.
     Cria um novo autor com base nos dados fornecidos no corpo da requisição.
 
     Args:
         author (AuthorSchema): Dados do autor a ser criado.
         session (Session): A sessão do banco de dados.
+        account (CurrentAccount): O usuário autenticado atual.
 
     Returns:
         AuthorPublic: O autor criado com os campos públicos.
@@ -63,13 +63,13 @@ def create_author(
 )
 def delete_author(author_id: int, session: T_Session, account: CurrentAccount):
     """
-    Deleta um autor pelo ID.
     Esta função manipula requisições DELETE para a rota '/authors/{author_id}'.
     Deleta o autor com o ID fornecido.
 
     Args:
         author_id (int): O ID do autor a ser deletado.
         session (Session): A sessão do banco de dados.
+        account (CurrentAccount): O usuário autenticado atual.
 
     Returns:
         Message: Mensagem de sucesso indicando que o autor foi deletado.
@@ -95,6 +95,24 @@ def update_author(
     session: T_Session,
     account: CurrentAccount,
 ):
+    """
+    Esta função manipula requisições PATCH para a rota '/authors/{author_id}'.
+    Atualiza o autor com o ID fornecido com os dados fornecidos
+    no corpo da requisição.
+
+    Args:
+        author_id (int): O ID do autor a ser atualizado.
+        author_data (AuthorUpdate): Dados do autor a serem atualizados.
+        session (Session): A sessão do banco de dados.
+        account (CurrentAccount): O usuário autenticado atual.
+
+    Returns:
+        AuthorPublic: O autor atualizado com os campos públicos.
+
+    Raises:
+        HTTPException: Se o autor não for encontrado ou se o nome do
+        autor já existir.
+    """
     author = session.scalar(select(Author).where(Author.id == author_id))
     if not author:
         raise HTTPException(
@@ -124,13 +142,13 @@ def update_author(
 )
 def get_author(author_id: int, session: T_Session, account: CurrentAccount):
     """
-    Obtém os dados de um autor pelo ID.
     Esta função manipula requisições GET para a rota '/authors/{author_id}'.
     Retorna os dados do autor correspondente ao ID fornecido.
 
     Args:
         author_id (int): O ID do autor a ser retornado.
         session (Session): A sessão do banco de dados.
+        account (CurrentAccount): O usuário autenticado atual.
 
     Returns:
         AuthorPublic: Os dados do autor encontrado.
@@ -153,7 +171,6 @@ def get_authors(
     author_filter: Annotated[FilterAuthor, Query()],
 ):
     """
-    Obtém uma lista de autores com base nos filtros fornecidos.
     Esta função manipula requisições GET para a rota '/authors/'.
     Retorna uma lista de autores filtrados por nome e ordenados por ID.
 

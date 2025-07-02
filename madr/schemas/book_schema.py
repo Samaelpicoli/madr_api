@@ -1,7 +1,8 @@
 from typing import List
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from madr.schemas.page_schema import FilterPage
 from madr.utils.sanitize_data import sanitize_text_in
 
 
@@ -93,3 +94,20 @@ class BookUpdate(BaseModel):
             str: O título sanitizado.
         """
         return sanitize_text_in(text)
+
+
+class FilterBook(FilterPage):
+    """
+    Modelo para filtrar livros com base em critérios específicos.
+    Este modelo é utilizado para validar os dados de entrada ao filtrar livros.
+
+    Attributes:
+        author_id (int | None): O ID do autor do livro (opcional)
+        title (str | None): O título do livro (opcional)
+        year (int | None): O ano de publicação do livro (opcional)
+        limit (int): O número máximo de livros a serem retornados
+    """
+
+    title: str | None = Field(default=None, min_length=1)
+    year: int | None = None
+    limit: int = Field(ge=1, default=20)
