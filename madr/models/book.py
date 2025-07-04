@@ -14,6 +14,22 @@ if TYPE_CHECKING:  # pragma: no cover
 
 @table_registry.mapped_as_dataclass
 class Book:
+    """
+    Modelo de livro para o banco de dados.
+    Este modelo representa a tabela de livros no banco de dados
+    e contém os campos necessários para armazenar informações
+    sobre os livros cadastrados.
+
+    Attributes:
+        id (int): ID único do livro (chave primária).
+        title (str): Título do livro, deve ser único.
+        year (int): Ano de publicação do livro.
+        author_id (int): ID do autor do livro (chave estrangeira).
+        author (Author): Autor associado ao livro.
+        created_at (datetime): Timestamp de criação do livro.
+        updated_at (datetime): Timestamp da última atualização do livro.
+    """
+
     __tablename__ = 'books'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)

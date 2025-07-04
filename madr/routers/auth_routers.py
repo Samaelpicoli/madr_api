@@ -65,7 +65,6 @@ async def login_for_access_token(
 @router.post('/refresh/token', response_model=Token)
 async def refresh_access_token(account: CurrentAccount):
     """
-    Atualiza o token de acesso do usuário autenticado.
     Esta função manipula requisições POST para a rota '/refresh/token'.
     Retorna um novo token de acesso para o usuário autenticado.
 

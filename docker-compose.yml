@@ -1,0 +1,23 @@
+services:
+  madr_database:
+    image: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "5435:5432"
+
+  madr_app:
+    image: madr_app
+    entrypoint: ./entrypoint.sh
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - madr_database
+    env_file:
+      - .env
+
+volumes:
+  pgdata:

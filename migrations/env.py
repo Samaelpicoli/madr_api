@@ -6,7 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from madr.database.get_session import table_registry
+from madr.models import account, author, book
+from madr.models.account import table_registry
 from madr.settings.settings import Settings
 
 # this is the Alembic Config object, which provides

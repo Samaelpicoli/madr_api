@@ -10,7 +10,7 @@ from madr.database.get_session import get_session
 from madr.models.account import Account
 from madr.settings.settings import Settings
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/auth/token')
 settings = Settings()
 
 

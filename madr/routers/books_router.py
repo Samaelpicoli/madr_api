@@ -181,7 +181,6 @@ async def get_books(
     book_filter: Annotated[FilterBook, Query()],
 ):
     """
-    Obtém uma lista de livros com base nos filtros fornecidos.
     Esta função manipula requisições GET para a rota '/books/'.
     Retorna uma lista de livros filtrados por título e ordenados por ID.
 

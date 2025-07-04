@@ -1,0 +1,27 @@
+site_name: Acervo de Livros API
+site_description: API para gerenciar um acervo de livros, autores e contas de usuários.
+site_author: Samael Muniz Picoli
+repo_url: https://github.com/Samaelpicoli/madr_api
+repo_name: madr_api
+
+theme:
+  name: material
+  palette:
+    - scheme: black
+      primary: red
+      accent: light blue
+
+nav:
+  - Início: index.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight

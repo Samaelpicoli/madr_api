@@ -114,9 +114,7 @@ async def update_account(
 ):
     """
     Atualiza os dados de uma conta de usuário.
-    Permite que um usuário autenticado atualize sua própria conta.
-    O usuário só pode atualizar sua própria conta, não podendo
-    atualizar outros contas do sistema.
+    Esta função manipula requisições PUT para a rota '/accounts/{account_id}'.
 
     Args:
         account_id (int): ID do usuário a ser atualizado.
@@ -164,10 +162,10 @@ async def delete_account(
     current_account: CurrentAccount,
 ):
     """
-    Remove uma conta de usuário do sistema.
-    Permite que um usuário autenticado remova sua própria conta.
-    O usuário só pode deletar sua própria conta, não podendo
-    remover outros contas do sistema.
+    Deleta uma conta de usuário.
+    Esta função manipula requisições DELETE para
+    a rota '/accounts/{account_id}'.
+    O usuário autenticado só pode deletar sua própria conta.
 
     Args:
         account_id (int): ID do usuário a ser removido.
@@ -195,7 +193,6 @@ async def delete_account(
 @router.get('/{account_id}', response_model=AccountPublic)
 async def get_account(account_id: int, session: T_Session):
     """
-    Retorna os dados de uma conta de usuário específico.
     Esta função manipula requisições GET para a rota '/accounts/{account_id}'.
     Retorna os dados da conta do usuário correspondente ao ID fornecido.
 

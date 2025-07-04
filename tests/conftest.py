@@ -7,7 +7,7 @@ import pytest_asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import StaticPool
+from testcontainers.postgres import PostgresContainer
 
 from madr.app import app
 from madr.database.get_session import get_session
@@ -54,7 +54,7 @@ class AccountFactory(factory.Factory):
 
 
 @pytest.fixture
-def client(session: AsyncSession):
+def client(session):
     """
     Cria um cliente de teste para a aplicação FastAPI.
     Esta função cria um cliente de teste que pode ser usado para
@@ -90,24 +90,43 @@ def client(session: AsyncSession):
     app.dependency_overrides.clear()
 
 
-@pytest_asyncio.fixture
-async def session():
+@pytest.fixture(scope='session')
+def engine():
     """
-    Cria uma sessão de banco de dados em memória para testes.
-
-    Esta função cria um banco de dados SQLite em memória e inicializa
-    as tabelas definidas no modelo. A sessão é usada para interagir com
-    o banco de dados durante os testes. Após os testes, a sessão é
-    descartada e o banco de dados é limpo.
+    Cria um motor de banco de dados assíncrono para testes.
+    Esta função cria um motor de banco de dados assíncrono usando o
+    SQLAlchemy e o URL de conexão do banco de dados fornecido pelo
+    PostgresContainer. O motor é usado para interagir com o banco de dados
+    durante os testes. O escopo da fixture é definido como 'session', o que
+    significa que o motor será criado uma vez por sessão de teste e
+    será compartilhado entre todos os testes. Isso melhora a eficiência
+    dos testes, evitando a criação repetida do motor para cada teste.
 
     Yields:
-        Session: Uma sessão de banco de dados configurada para os testes.
+        AsyncEngine: Um motor de banco de dados assíncrono configurado
+        para os testes. O motor é usado para criar sessões de banco de dados
+        e executar operações de banco de dados durante os testes.
     """
-    engine = create_async_engine(
-        'sqlite+aiosqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-    )
+    with PostgresContainer('postgres:17', driver='psycopg') as postgres:
+        yield create_async_engine(postgres.get_connection_url())
+
+
+@pytest_asyncio.fixture
+async def session(engine):
+    """
+    Cria uma sessão de banco de dados para testes.
+    Esta função cria uma sessão de banco de dados assíncrona usando o
+    motor de banco de dados fornecido. A sessão é usada para
+    interagir com o banco de dados durante os testes. A sessão é
+    gerenciada de forma assíncrona para permitir operações não bloqueantes.
+
+    Yields:
+        AsyncSession: Uma sessão de banco de dados assíncrona configurada
+        para os testes. A sessão é usada para realizar operações de banco
+        de dados durante os testes, como inserção, atualização e consulta
+        de dados. A sessão é fechada automaticamente após o uso, garantindo
+        que os recursos sejam liberados corretamente.
+    """
 
     async with engine.begin() as conn:
         # Cria todas as tabelas definidas no modelo

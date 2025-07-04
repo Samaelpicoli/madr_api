@@ -14,6 +14,20 @@ if TYPE_CHECKING:  # pragma: no cover
 
 @table_registry.mapped_as_dataclass
 class Author:
+    """
+    Modelo de autor para o banco de dados.
+    Este modelo representa a tabela de autores no banco de dados
+    e contém os campos necessários para armazenar informações
+    sobre os autores cadastrados.
+
+    Attributes:
+        id (int): ID único do autor (chave primária).
+        name (str): Nome do autor, deve ser único.
+        books (List[Book]): Lista de livros associados ao autor.
+        created_at (datetime): Timestamp de criação do autor.
+        updated_at (datetime): Timestamp da última atualização do autor.
+    """
+
     __tablename__ = 'authors'
 
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
