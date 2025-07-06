@@ -191,7 +191,9 @@ async def delete_account(
 
 
 @router.get('/{account_id}', response_model=AccountPublic)
-async def get_account(account_id: int, session: T_Session):
+async def get_account(
+    account_id: int, session: T_Session, current_account: CurrentAccount
+):
     """
     Esta função manipula requisições GET para a rota '/accounts/{account_id}'.
     Retorna os dados da conta do usuário correspondente ao ID fornecido.

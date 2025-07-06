@@ -203,7 +203,7 @@ def test_delete_account_should_return_403_error_when_deleting_another_account(
     assert response.json() == {'detail': 'Not enough permissions'}
 
 
-def test_get_account_should_return_account(client, account):
+def test_get_account_should_return_account(client, account, token):
     """
     Testa se o endpoint /accounts/{account_id} retorna os dados de uma conta.
     Utiliza a fixture 'account' para criar uma conta no banco de dados.
@@ -211,7 +211,9 @@ def test_get_account_should_return_account(client, account):
     Verifica se a resposta da API contém o status code 200 (OK) e
     se o corpo da resposta contém os dados da conta criado.
     """
-    response = client.get('/accounts/1')
+    response = client.get(
+        '/accounts/1', headers={'Authorization': f'Bearer {token}'}
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         'id': 1,
@@ -220,7 +222,9 @@ def test_get_account_should_return_account(client, account):
     }
 
 
-def test_get_account_should_return_404_error_when_account_not_found(client):
+def test_get_account_should_return_404_error_when_account_not_found(
+    client, token
+):
     """
     Testa se o endpoint /accounts/{account_id} retorna erro 404 quando
     a conta não existe.
@@ -229,6 +233,8 @@ def test_get_account_should_return_404_error_when_account_not_found(client):
     e se o corpo da resposta contém uma mensagem de erro indicando que
     a conta não foi encontrado.
     """
-    response = client.get('/accounts/999')
+    response = client.get(
+        '/accounts/999', headers={'Authorization': f'Bearer {token}'}
+    )
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'Account not found'}
