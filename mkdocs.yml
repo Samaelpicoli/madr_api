@@ -7,7 +7,7 @@ repo_name: madr_api
 theme:
   name: material
   palette:
-    - scheme: black
+    - scheme: red
       primary: red
       accent: light blue
 
