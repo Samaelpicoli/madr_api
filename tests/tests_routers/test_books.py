@@ -352,3 +352,151 @@ async def test_get_books_should_return_books(client, token, session):
             },
         ]
     }
+
+
+def test_get_books_should_return_empty_list_when_no_books_exist(
+    client, token, session
+):
+    """
+    Testa se o endpoint /books/ retorna uma lista vazia quando
+    não há livros.
+
+    Verifica se a resposta da API contém o status code 200 (OK) e
+    se o corpo da resposta é uma lista vazia.
+    """
+    response = client.get(
+        '/books/',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'books': []}
+
+
+@pytest.mark.asyncio
+async def test_get_books_should_return_filtered_with_name_books(
+    client, token, session
+):
+    """
+    Testa se o endpoint /books/ retorna uma lista de livros filtrados
+    por título.
+
+    Verifica se a resposta da API contém o status code 200 (OK) e
+    se o corpo da resposta contém os livros filtrados pelo título.
+    """
+    author = AuthorFactory(name='Machado de Assis')
+    session.add(author)
+    await session.commit()
+    book1 = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
+    book2 = BookFactory(
+        title='Memórias Póstumas de Brás Cubas', year=1881, author_id=author.id
+    )
+    session.add(book1)
+    session.add(book2)
+    await session.commit()
+
+    response = client.get(
+        '/books/',
+        params={'title': 'Dom'},
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'books': [
+            {'title': 'dom casmurro', 'year': 1899, 'author_id': 1, 'id': 1}
+        ]
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_books_should_return_filtered_with_year_books(
+    client, token, session
+):
+    """
+    Testa se o endpoint /books/ retorna uma lista de livros filtrados
+    por ano.
+
+    Verifica se a resposta da API contém o status code 200 (OK) e
+    se o corpo da resposta contém os livros filtrados pelo ano.
+    """
+    author = AuthorFactory(name='Machado de Assis')
+    session.add(author)
+    await session.commit()
+    book1 = BookFactory(title='Dom Casmurro', year=1899, author_id=author.id)
+    book2 = BookFactory(
+        title='Memórias Póstumas de Brás Cubas', year=1881, author_id=author.id
+    )
+    session.add(book1)
+    session.add(book2)
+    await session.commit()
+    response = client.get(
+        '/books/',
+        params={'year': 1899},
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'books': [
+            {'title': 'dom casmurro', 'year': 1899, 'author_id': 1, 'id': 1}
+        ]
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_books_should_return_filtered_with_name_and_year_books(
+    client, token, session
+):
+    """
+    Testa se o endpoint /books/ retorna uma lista de livros filtrados
+    por título e ano.
+
+    Verifica se a resposta da API contém o status code 200 (OK) e
+    se o corpo da resposta contém os livros filtrados pelo título e ano.
+    """
+    author_one = AuthorFactory(name='Machado de Assis')
+    author_two = AuthorFactory(name='José de Alencar')
+    author_three = AuthorFactory(name='Kurt Vonnegut')
+    session.add(author_one)
+    session.add(author_two)
+    session.add(author_three)
+    await session.commit()
+    book1 = BookFactory(
+        title='Memórias Póstumas de Brás Cubas',
+        year=1900,
+        author_id=author_one.id
+    )
+    book2 = BookFactory(
+        title='Iracema',
+        year=1865,
+        author_id=author_two.id
+    )
+    book3 = BookFactory(
+        title='Café da Manhã dos Campeões',
+        year=1900,
+        author_id=author_three.id
+    )
+    session.add(book1)
+    session.add(book2)
+    session.add(book3)
+    await session.commit()
+    response = client.get(
+        '/books/',
+        params={'title': 'a', 'year': 1900},
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'books': [
+            {
+                'title': 'memórias póstumas de brás cubas',
+                'year': 1900,
+                'author_id': 1,
+                'id': 1
+            },
+            {
+                'title': 'café da manhã dos campeões',
+                'year': 1900,
+                'author_id': 3,
+                'id': 3
+            },
+        ]
+    }
